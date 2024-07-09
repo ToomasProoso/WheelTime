@@ -1,14 +1,15 @@
-// src/services/api.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/api';
+const API_URL = '/api';
 
-export const getAvailableSlots = (workshopId, vehicleType, startDate, endDate) => {
-    return axios.get(`${API_URL}/workshops/${workshopId}/slots`, {
-        params: { vehicleType, startDate, endDate }
+export function getAvailableAppointments(workshop) {
+    return axios.get(`${API_URL}/appointments`, {
+        params: { workshop }
     });
-};
+}
 
-export const bookSlot = (workshopId, slotId) => {
-    return axios.post(`${API_URL}/workshops/${workshopId}/book`, { slotId });
-};
+export function bookAppointment(workshop, id, data) {
+    return axios.post(`${API_URL}/appointments/${id}/booking`, data, {
+        params: { workshop }
+    });
+}

@@ -1,41 +1,38 @@
-// src/store/index.js
-import Vue from 'vue';
-import Vuex from 'vuex';
-import { getAvailableSlots, bookSlot } from '../services/api';
+import { createStore } from 'vuex';
+import { getAvailableAppointments, bookAppointment } from '../services/api';
 
-Vue.use(Vuex);
-
-export default new Vuex.Store({
+const store = createStore({
     state: {
-        slots: [],
-        error: null,
+        appointments: [],
+        selectedWorkshop: 'manchester',
+        bookingMessage: ''
     },
     mutations: {
-        setSlots(state, slots) {
-            state.slots = slots;
+        setAppointments(state, appointments) {
+            state.appointments = appointments;
         },
-        setError(state, error) {
-            state.error = error;
-        },
+        setBookingMessage(state, message) {
+            state.bookingMessage = message;
+        }
     },
     actions: {
-        fetchSlots({ commit }, { workshopId, vehicleType, startDate, endDate }) {
-            return getAvailableSlots(workshopId, vehicleType, startDate, endDate).then(response => {
-                commit('setSlots', response.data);
-            }).catch(error => {
-                commit('setError', error.response.data);
-            });
+        async fetchAppointments({ commit, state }) {
+            try {
+                const response = await getAvailableAppointments(state.selectedWorkshop);
+                commit('setAppointments', response.data);
+            } catch (error) {
+                console.error('Error fetching appointments:', error);
+            }
         },
-        bookSlot({ dispatch, commit }, { workshopId, slotId, filters }) {
-            return bookSlot(workshopId, slotId).then(() => {
-                dispatch('fetchSlots', filters);
-            }).catch(error => {
-                commit('setError', error.response.data);
-            });
-        },
-    },
-    getters: {
-        slots: state => state.slots,
-        error: state => state.error,
-    },
+        async bookAppointment({ commit, state }, { id, vehicleType, time }) {
+            try {
+                await bookAppointment(state.selectedWorkshop, id, { vehicleType, time });
+                commit('setBookingMessage', 'Broneering õnnestus!');
+            } catch (error) {
+                commit('setBookingMessage', 'Broneering ebaõnnestus: ' + error.response.data.message);
+            }
+        }
+    }
 });
+
+export default store;
