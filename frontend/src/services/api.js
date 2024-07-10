@@ -1,44 +1,22 @@
 import axios from 'axios';
-import xml2js from 'xml2js';
 
-const API_URL = 'http://localhost:8080/api';
+const API_BASE_URL = 'http://localhost:8080/api';
 
-export async function getAvailableAppointments(workshop, from, until) {
-    let url = `${API_URL}/appointments`;
-    let params = { workshop, from };
-    if (workshop === 'london' && until) {
-        params.until = until;
-    }
-    const response = await axios.get(url, { params });
-
+export async function getAvailableAppointments(workshop, fromDate, untilDate) {
+    const params = {
+        workshop: workshop,
+        from: fromDate,
+    };
     if (workshop === 'london') {
-        try {
-            const parser = new xml2js.Parser({ explicitArray: false, mergeAttrs: true });
-            const result = await parser.parseStringPromise(response.data);
-            return result.tireChangeTimesResponse.availableTime.map(item => ({
-                id: item.uuid,
-                time: item.time
-            }));
-        } catch (error) {
-            console.error('XML parsing error:', error);
-            throw error;
-        }
+        params.until = untilDate;
     }
-
-    // Manchester API response handling
-    if (workshop === 'manchester') {
-        return response.data.map(item => ({
-            id: item.id,
-            time: item.time,
-            available: item.available
-        }));
-    }
-
+    const response = await axios.get(`${API_BASE_URL}/appointments`, { params });
     return response.data;
 }
 
-export function bookAppointment(workshop, id, data) {
-    return axios.post(`${API_URL}/appointments/${id}/booking`, data, {
+export async function bookAppointment(workshop, id, request) {
+    const response = await axios.post(`${API_BASE_URL}/appointments/${id}/booking`, request, {
         params: { workshop }
     });
+    return response.data;
 }

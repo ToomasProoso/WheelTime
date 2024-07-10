@@ -8,7 +8,7 @@
     <label for="fromDate">Alates kuupäev:</label>
     <input type="date" v-model="fromDate" id="fromDate" required>
     <label for="untilDate" v-if="selectedWorkshop === 'london'">Kuni kuupäev:</label>
-    <input type="date" v-model="untilDate" id="untilDate" v-if="selectedWorkshop === 'london'" required>
+    <input type="date" v-model="untilDate" id="untilDate" v-if="selectedWorkshop === 'london'">
     <button @click="fetchAppointments">Otsi aegu</button>
     <ul>
       <li v-for="appointment in filteredAppointments" :key="appointment.id" @click="selectAppointment(appointment)">
@@ -46,7 +46,7 @@ export default {
     async fetchAppointments() {
       console.log(`Fetching appointments for workshop: ${this.selectedWorkshop}`);
       try {
-        this.appointments = await getAvailableAppointments(this.selectedWorkshop, this.fromDate, this.untilDate);
+        this.appointments = await getAvailableAppointments(this.selectedWorkshop, this.fromDate, this.selectedWorkshop === 'london' ? this.untilDate : this.fromDate);
       } catch (error) {
         console.error('Error fetching appointments:', error);
       }

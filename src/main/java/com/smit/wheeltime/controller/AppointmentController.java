@@ -20,24 +20,14 @@ public class AppointmentController {
     }
 
     @GetMapping
-    public List<TireChangeTime> getAvailableAppointments(@RequestParam String workshop) {
-        if (workshop.equals("manchester")) {
-            return externalWorkshopService.fetchManchesterAppointments();
-        } else if (workshop.equals("london")) {
-            return externalWorkshopService.fetchLondonAppointments();
-        } else {
-            throw new IllegalArgumentException("Unknown workshop: " + workshop);
-        }
+    public List<TireChangeTime> getAvailableAppointments(@RequestParam String workshop,
+                                                         @RequestParam String from,
+                                                         @RequestParam(required = false) String until) {
+        return externalWorkshopService.fetchAppointments(workshop, from, until);
     }
 
     @PostMapping("/{id}/booking")
     public TireChangeTimeBookingResponse bookAppointment(@RequestParam String workshop, @PathVariable String id, @RequestBody TireChangeBookingRequest request) {
-        if (workshop.equals("manchester")) {
-            return externalWorkshopService.bookAppointment("http://localhost:9004", id, request);
-        } else if (workshop.equals("london")) {
-            return externalWorkshopService.bookAppointment("http://localhost:9003", id, request);
-        } else {
-            throw new IllegalArgumentException("Unknown workshop: " + workshop);
-        }
+        return externalWorkshopService.bookAppointment(workshop, id, request);
     }
 }
