@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <AppointmentList />
-    <AppointmentBooking />
+    <AppointmentList @appointment-selected="handleAppointmentSelected" />
+    <AppointmentBooking :selectedWorkshop="selectedWorkshop" :selectedAppointment="selectedAppointment" />
   </div>
 </template>
 
@@ -10,14 +10,20 @@ import AppointmentList from './components/AppointmentList.vue';
 import AppointmentBooking from './components/AppointmentBooking.vue';
 
 export default {
-  name: 'App',
   components: {
     AppointmentList,
     AppointmentBooking
+  },
+  data() {
+    return {
+      selectedAppointment: null,
+      selectedWorkshop: 'manchester'
+    };
+  },
+  methods: {
+    handleAppointmentSelected(appointment) {
+      this.selectedAppointment = appointment;
+    }
   }
 };
 </script>
-
-<style>
-/* jäta meelde lisa stiilid  */
-</style>

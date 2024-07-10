@@ -5,34 +5,55 @@
       <option value="manchester">Manchester</option>
       <option value="london">London</option>
     </select>
+    <label for="fromDate">Alates kuupäev:</label>
+    <input type="date" v-model="fromDate" id="fromDate" required>
+    <label for="untilDate" v-if="selectedWorkshop === 'london'">Kuni kuupäev:</label>
+    <input type="date" v-model="untilDate" id="untilDate" v-if="selectedWorkshop === 'london'" required>
     <button @click="fetchAppointments">Otsi aegu</button>
     <ul>
-      <li v-for="appointment in appointments" :key="appointment.id">
-        {{ appointment.time }} - {{ appointment.vehicleType }}
+      <li v-for="appointment in filteredAppointments" :key="appointment.id" @click="selectAppointment(appointment)">
+        {{ appointment.time }} - {{ appointment.vehicleType || 'Pole määratud' }}
       </li>
     </ul>
   </div>
 </template>
 
 <script>
-import {getAvailableAppointments} from '@/services/api';
+import { getAvailableAppointments } from '../services/api';
 
 export default {
   data() {
     return {
       appointments: [],
-      selectedWorkshop: 'manchester'
+      selectedWorkshop: 'manchester',
+      fromDate: '',
+      untilDate: '',
+      selectedAppointment: null
     };
+  },
+  computed: {
+    filteredAppointments() {
+      const now = new Date();
+      return this.appointments.filter(appointment => {
+        const appointmentDate = new Date(appointment.time);
+        const fromDate = new Date(this.fromDate);
+        const untilDate = new Date(this.untilDate);
+        return appointmentDate >= now && appointmentDate >= fromDate && appointmentDate <= untilDate;
+      });
+    }
   },
   methods: {
     async fetchAppointments() {
       console.log(`Fetching appointments for workshop: ${this.selectedWorkshop}`);
       try {
-        const response = await getAvailableAppointments(this.selectedWorkshop);
-        this.appointments = response.data;
+        this.appointments = await getAvailableAppointments(this.selectedWorkshop, this.fromDate, this.untilDate);
       } catch (error) {
         console.error('Error fetching appointments:', error);
       }
+    },
+    selectAppointment(appointment) {
+      this.selectedAppointment = appointment;
+      this.$emit('appointment-selected', appointment);
     }
   }
 };
