@@ -25,6 +25,15 @@ export async function getAvailableAppointments(workshop, from, until) {
         }
     }
 
+    // Manchester API response handling
+    if (workshop === 'manchester') {
+        return response.data.map(item => ({
+            id: item.id,
+            time: item.time,
+            available: item.available
+        }));
+    }
+
     return response.data;
 }
 

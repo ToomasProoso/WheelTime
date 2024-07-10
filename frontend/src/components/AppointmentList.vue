@@ -38,7 +38,7 @@ export default {
         const appointmentDate = new Date(appointment.time);
         const fromDate = new Date(this.fromDate);
         const untilDate = new Date(this.untilDate);
-        return appointmentDate >= now && appointmentDate >= fromDate && appointmentDate <= untilDate;
+        return appointmentDate >= now && appointmentDate >= fromDate && (!this.untilDate || appointmentDate <= untilDate);
       });
     }
   },
