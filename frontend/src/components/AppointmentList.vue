@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import {getAvailableAppointments} from '@/services/api';
 
 export default {
   data() {
@@ -26,8 +26,13 @@ export default {
   },
   methods: {
     async fetchAppointments() {
-      const response = await axios.get(`/api/appointments?workshop=${this.selectedWorkshop}`);
-      this.appointments = response.data;
+      console.log(`Fetching appointments for workshop: ${this.selectedWorkshop}`);
+      try {
+        const response = await getAvailableAppointments(this.selectedWorkshop);
+        this.appointments = response.data;
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+      }
     }
   }
 };

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = '/api';
+const API_URL = 'http://localhost:8080/api';
 
 export function getAvailableAppointments(workshop) {
     return axios.get(`${API_URL}/appointments`, {

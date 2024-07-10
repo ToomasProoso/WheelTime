@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { bookAppointment } from '@/services/api';
 
 export default {
   data() {
@@ -30,11 +30,9 @@ export default {
   methods: {
     async bookAppointment() {
       try {
-        const response = await axios.post(`/api/appointments/${this.id}/booking`, {
+        const response = await bookAppointment(this.workshop, this.id, {
           vehicleType: this.vehicleType,
           time: this.time
-        }, {
-          params: { workshop: this.workshop }
         });
         this.message = 'Broneering õnnestus!';
       } catch (error) {

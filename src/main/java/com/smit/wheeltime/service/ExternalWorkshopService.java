@@ -24,7 +24,7 @@ public class ExternalWorkshopService {
 
     public List<TireChangeTime> fetchAppointments(String workshopUrl) {
         ResponseEntity<List<TireChangeTime>> response = restTemplate.exchange(
-                workshopUrl + "/tire-change-times",
+                workshopUrl,
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<List<TireChangeTime>>() {}
@@ -33,11 +33,11 @@ public class ExternalWorkshopService {
     }
 
     public List<TireChangeTime> fetchManchesterAppointments() {
-        return fetchAppointments(manchesterApiUrl);
+        return fetchAppointments(manchesterApiUrl + "/tire-change-times?from=2006-01-02");
     }
 
     public List<TireChangeTime> fetchLondonAppointments() {
-        return fetchAppointments(londonApiUrl);
+        return fetchAppointments(londonApiUrl + "/tire-change-times/available?from=2006-01-02&until=2030-01-02");
     }
 
     public TireChangeTimeBookingResponse bookAppointment(String workshopUrl, String id, TireChangeBookingRequest request) {
@@ -49,4 +49,3 @@ public class ExternalWorkshopService {
         return response.getBody();
     }
 }
-

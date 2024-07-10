@@ -33,12 +33,11 @@ public class AppointmentController {
     @PostMapping("/{id}/booking")
     public TireChangeTimeBookingResponse bookAppointment(@RequestParam String workshop, @PathVariable String id, @RequestBody TireChangeBookingRequest request) {
         if (workshop.equals("manchester")) {
-            return externalWorkshopService.bookAppointment("http://localhost:9003", id, request);
-        } else if (workshop.equals("london")) {
             return externalWorkshopService.bookAppointment("http://localhost:9004", id, request);
+        } else if (workshop.equals("london")) {
+            return externalWorkshopService.bookAppointment("http://localhost:9003", id, request);
         } else {
             throw new IllegalArgumentException("Unknown workshop: " + workshop);
         }
     }
 }
-
