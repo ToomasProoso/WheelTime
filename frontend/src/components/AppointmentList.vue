@@ -38,6 +38,21 @@ export default {
       selectedAppointment: null
     };
   },
+  watch: {
+    selectedWorkshop() {
+      this.resetData();
+      this.fetchAppointments();
+    },
+    fromDate() {
+      this.fetchAppointments();
+    },
+    untilDate() {
+      this.fetchAppointments();
+    },
+    vehicleType() {
+      this.fetchAppointments();
+    }
+  },
   computed: {
     filteredAppointments() {
       const now = new Date();
@@ -62,7 +77,17 @@ export default {
     selectAppointment(appointment) {
       this.selectedAppointment = appointment;
       this.$emit('appointment-selected', appointment);
+    },
+    resetData() {
+      this.appointments = [];
+      this.fromDate = '';
+      this.untilDate = '';
+      this.vehicleType = '';
+      this.selectedAppointment = null;
     }
+  },
+  created() {
+    this.fetchAppointments();
   }
 };
 </script>
