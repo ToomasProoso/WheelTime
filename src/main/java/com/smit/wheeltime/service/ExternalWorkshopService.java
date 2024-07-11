@@ -1,10 +1,12 @@
 package com.smit.wheeltime.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.smit.wheeltime.model.TireChangeBookingRequest;
 import com.smit.wheeltime.model.TireChangeTime;
 import com.smit.wheeltime.model.TireChangeTimeBookingResponse;
+import com.smit.wheeltime.util.XmlResponseParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -12,8 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -51,7 +51,10 @@ public class ExternalWorkshopService {
     @Value("${workshop.london.vehicleTypes}")
     private String[] londonVehicleTypes;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private RestTemplate restTemplate;
+
+    private final XmlResponseParser xmlResponseParser = new XmlResponseParser();
 
     public List<TireChangeTime> fetchAppointments(String workshop, String from, String until, String vehicleType) {
         if ("manchester".equalsIgnoreCase(workshop)) {
@@ -63,79 +66,79 @@ public class ExternalWorkshopService {
     }
 
     private List<TireChangeTime> fetchManchesterAppointments(String from, String vehicleType) {
-        try {
-            String requestUrl = UriComponentsBuilder.fromHttpUrl(manchesterApiUrl + "/tire-change-times")
-                    .queryParam("from", from)
-                    .toUriString();
-            logger.info("Fetching Manchester appointments with URL: {}", requestUrl);
+        String requestUrl = buildManchesterRequestUrl(from);
+        logger.info("Fetching Manchester appointments with URL: {}", requestUrl);
 
+        try {
             ResponseEntity<List<TireChangeTime>> response = restTemplate.exchange(
                     requestUrl,
                     HttpMethod.GET,
                     null,
-                    new ParameterizedTypeReference<List<TireChangeTime>>() {}
+                    new ParameterizedTypeReference<List<TireChangeTime>>() {
+                    }
             );
-            List<TireChangeTime> appointments = response.getBody();
-            logger.info("Manchester appointments API response: {}", appointments);
-
-            if (appointments == null || appointments.isEmpty()) {
-                logger.warn("No appointments received from Manchester API");
-                return new ArrayList<>();
-            }
-
-            LocalDate selectedDate = LocalDate.parse(from);
-            LocalDateTime now = LocalDateTime.now();
-
-            return appointments.stream()
-                    .filter(time -> time.isAvailable() && isSameDay(time.getTime(), selectedDate) && LocalDateTime.parse(time.getTime(), DateTimeFormatter.ISO_DATE_TIME).isAfter(now))
-                    .filter(time -> vehicleType == null || time.getVehicleType().equalsIgnoreCase(vehicleType))
-                    .peek(time -> {
-                        time.setWorkshop(manchesterName);
-                        time.setAddress(manchesterAddress);
-                        if (time.getVehicleType() == null) {
-                            time.setVehicleType(String.join(", ", manchesterVehicleTypes));
-                        }
-                    })
-                    .collect(Collectors.toList());
+            return filterManchesterAppointments(response.getBody(), from, vehicleType);
         } catch (Exception e) {
             logger.error("Error fetching Manchester appointments: {}", e.getMessage(), e);
             return new ArrayList<>();
         }
     }
 
+    private String buildManchesterRequestUrl(String from) {
+        return UriComponentsBuilder.fromHttpUrl(manchesterApiUrl + "/tire-change-times")
+                .queryParam("from", from)
+                .toUriString();
+    }
+
+    private List<TireChangeTime> filterManchesterAppointments(List<TireChangeTime> appointments, String from, String vehicleType) {
+        if (appointments == null || appointments.isEmpty()) {
+            logger.warn("No appointments received from Manchester API");
+            return new ArrayList<>();
+        }
+
+        LocalDate selectedDate = LocalDate.parse(from);
+        LocalDateTime now = LocalDateTime.now();
+
+        return appointments.stream()
+                .filter(time -> time.isAvailable() && isSameDay(time.getTime(), selectedDate) && LocalDateTime.parse(time.getTime(), DateTimeFormatter.ISO_DATE_TIME).isAfter(now))
+                .filter(time -> vehicleType == null || time.getVehicleType().equalsIgnoreCase(vehicleType))
+                .peek(time -> setManchesterWorkshopDetails(time))
+                .collect(Collectors.toList());
+    }
+
+    private void setManchesterWorkshopDetails(TireChangeTime time) {
+        time.setWorkshop(manchesterName);
+        time.setAddress(manchesterAddress);
+        if (time.getVehicleType() == null) {
+            time.setVehicleType(String.join(", ", manchesterVehicleTypes));
+        }
+    }
+
     private List<TireChangeTime> fetchLondonAppointments(String from, String until, String vehicleType) {
+        String requestUrl = buildLondonRequestUrl(from, until);
+        logger.info("Fetching London appointments with URL: {}", requestUrl);
+
         try {
-            String requestUrl = UriComponentsBuilder.fromHttpUrl(londonApiUrl + "/tire-change-times/available")
-                    .queryParam("from", from)
-                    .queryParam("until", until)
-                    .toUriString();
-            logger.info("Fetching London appointments with URL: {}", requestUrl);
-
             ResponseEntity<String> response = restTemplate.getForEntity(requestUrl, String.class);
-
-            XmlMapper xmlMapper = new XmlMapper();
-            JsonNode node = xmlMapper.readTree(response.getBody().getBytes());
-            List<TireChangeTime> times = new ArrayList<>();
-            logger.info("London appointments API response: {}", response.getBody());
-            node.path("availableTime").forEach(item -> {
-                TireChangeTime time = new TireChangeTime();
-                time.setId(item.path("uuid").asText());
-                time.setTime(item.path("time").asText());
-                time.setAvailable(true);
-                time.setWorkshop(londonName);
-                time.setAddress(londonAddress);
-                if (time.getVehicleType() == null) {
-                    time.setVehicleType(londonVehicleTypes[0]);
-                }
-                if (isWithinDateRange(time.getTime(), from, until) && (vehicleType == null || time.getVehicleType().equalsIgnoreCase(vehicleType))) {
-                    times.add(time);
-                }
-            });
-            return times;
+            List<TireChangeTime> times = xmlResponseParser.parseLondonResponse(response.getBody(), londonName, londonAddress, londonVehicleTypes[0]);
+            return filterLondonAppointments(times, from, until, vehicleType);
         } catch (Exception e) {
             logger.error("Error fetching London appointments: {}", e.getMessage(), e);
             return new ArrayList<>();
         }
+    }
+
+    private String buildLondonRequestUrl(String from, String until) {
+        return UriComponentsBuilder.fromHttpUrl(londonApiUrl + "/tire-change-times/available")
+                .queryParam("from", from)
+                .queryParam("until", until)
+                .toUriString();
+    }
+
+    private List<TireChangeTime> filterLondonAppointments(List<TireChangeTime> times, String from, String until, String vehicleType) {
+        return times.stream()
+                .filter(time -> isWithinDateRange(time.getTime(), from, until) && (vehicleType == null || time.getVehicleType().equalsIgnoreCase(vehicleType)))
+                .collect(Collectors.toList());
     }
 
     private boolean isSameDay(String time, LocalDate selectedDate) {
@@ -151,20 +154,22 @@ public class ExternalWorkshopService {
     }
 
     public TireChangeTimeBookingResponse bookAppointment(String workshop, String id, TireChangeBookingRequest request) {
+        String apiUrl = getWorkshopApiUrl(workshop);
+        if (apiUrl == null) return null;
+
+        ResponseEntity<TireChangeTimeBookingResponse> response = restTemplate.postForEntity(
+                apiUrl + "/tire-change-times/" + id + "/booking",
+                request,
+                TireChangeTimeBookingResponse.class
+        );
+        return response.getBody();
+    }
+
+    private String getWorkshopApiUrl(String workshop) {
         if ("manchester".equalsIgnoreCase(workshop)) {
-            ResponseEntity<TireChangeTimeBookingResponse> response = restTemplate.postForEntity(
-                    manchesterApiUrl + "/tire-change-times/" + id + "/booking",
-                    request,
-                    TireChangeTimeBookingResponse.class
-            );
-            return response.getBody();
+            return manchesterApiUrl;
         } else if ("london".equalsIgnoreCase(workshop)) {
-            ResponseEntity<TireChangeTimeBookingResponse> response = restTemplate.postForEntity(
-                    londonApiUrl + "/tire-change-times/" + id + "/booking",
-                    request,
-                    TireChangeTimeBookingResponse.class
-            );
-            return response.getBody();
+            return londonApiUrl;
         }
         return null;
     }
