@@ -9,17 +9,23 @@
     <input type="date" v-model="fromDate" id="fromDate" required>
     <label for="untilDate" v-if="selectedWorkshop === 'london'">Kuni kuupäev:</label>
     <input type="date" v-model="untilDate" id="untilDate" v-if="selectedWorkshop === 'london'">
+    <label for="vehicleType">Sõiduki tüüp:</label>
+    <select v-model="vehicleType" id="vehicleType">
+      <option value="">Kõik</option>
+      <option value="sõiduauto">Sõiduauto</option>
+      <option value="veoauto">Veoauto</option>
+    </select>
     <button @click="fetchAppointments">Otsi aegu</button>
     <ul>
       <li v-for="appointment in filteredAppointments" :key="appointment.id" @click="selectAppointment(appointment)">
-        {{ appointment.time }} - {{ appointment.vehicleType || 'Pole määratud' }}
+        {{ appointment.time }} - {{ appointment.vehicleType || 'Pole määratud' }} - {{ appointment.workshop }} - {{ appointment.address }}
       </li>
     </ul>
   </div>
 </template>
 
 <script>
-import { getAvailableAppointments } from '../services/api';
+import { getAvailableAppointments } from '@/services/api';
 
 export default {
   data() {
@@ -28,6 +34,7 @@ export default {
       selectedWorkshop: 'manchester',
       fromDate: '',
       untilDate: '',
+      vehicleType: '',
       selectedAppointment: null
     };
   },
@@ -46,7 +53,7 @@ export default {
     async fetchAppointments() {
       console.log(`Fetching appointments for workshop: ${this.selectedWorkshop}`);
       try {
-        this.appointments = await getAvailableAppointments(this.selectedWorkshop, this.fromDate, this.selectedWorkshop === 'london' ? this.untilDate : this.fromDate);
+        this.appointments = await getAvailableAppointments(this.selectedWorkshop, this.fromDate, this.selectedWorkshop === 'london' ? this.untilDate : this.fromDate, this.vehicleType);
       } catch (error) {
         console.error('Error fetching appointments:', error);
       }

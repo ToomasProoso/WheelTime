@@ -22,8 +22,9 @@ public class AppointmentController {
     @GetMapping
     public List<TireChangeTime> getAvailableAppointments(@RequestParam String workshop,
                                                          @RequestParam String from,
-                                                         @RequestParam(required = false) String until) {
-        return externalWorkshopService.fetchAppointments(workshop, from, until);
+                                                         @RequestParam(required = false) String until,
+                                                         @RequestParam(required = false) String vehicleType) {
+        return externalWorkshopService.fetchAppointments(workshop, from, until, vehicleType);
     }
 
     @PostMapping("/{id}/booking")

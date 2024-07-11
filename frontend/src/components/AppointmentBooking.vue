@@ -5,7 +5,10 @@
       <label for="id">Aja ID:</label>
       <input type="text" v-model="id" id="id" required readonly>
       <label for="vehicleType">Sõiduki tüüp:</label>
-      <input type="text" v-model="vehicleType" id="vehicleType" required>
+      <select v-model="vehicleType" id="vehicleType" required>
+        <option value="sõiduauto">Sõiduauto</option>
+        <option value="veoauto">Veoauto</option>
+      </select>
       <label for="time">Aeg:</label>
       <input type="text" v-model="time" id="time" required readonly>
       <button type="submit">Broneeri</button>
@@ -15,7 +18,7 @@
 </template>
 
 <script>
-import {bookAppointment} from '@/services/api';
+import { bookAppointment } from '@/services/api';
 
 export default {
   props: ['selectedWorkshop', 'selectedAppointment'],

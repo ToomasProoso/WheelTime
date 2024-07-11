@@ -28,9 +28,27 @@ public class ExternalWorkshopService {
     @Value("${workshop.api.london}")
     private String londonApiUrl;
 
+    @Value("${workshop.manchester.name}")
+    private String manchesterName;
+
+    @Value("${workshop.manchester.address}")
+    private String manchesterAddress;
+
+    @Value("${workshop.manchester.vehicleTypes}")
+    private String[] manchesterVehicleTypes;
+
+    @Value("${workshop.london.name}")
+    private String londonName;
+
+    @Value("${workshop.london.address}")
+    private String londonAddress;
+
+    @Value("${workshop.london.vehicleTypes}")
+    private String[] londonVehicleTypes;
+
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public List<TireChangeTime> fetchAppointments(String workshop, String from, String until) {
+    public List<TireChangeTime> fetchAppointments(String workshop, String from, String until, String vehicleType) {
         if ("manchester".equalsIgnoreCase(workshop)) {
             ResponseEntity<List<TireChangeTime>> response = restTemplate.exchange(
                     UriComponentsBuilder.fromHttpUrl(manchesterApiUrl + "/tire-change-times")
@@ -42,7 +60,12 @@ public class ExternalWorkshopService {
             );
             LocalDate selectedDate = LocalDate.parse(from);
             return response.getBody().stream()
-                    .filter(time -> time.isAvailable() && isSameDay(time.getTime(), selectedDate))
+                    .filter(time -> time.isAvailable() && isSameDay(time.getTime(), selectedDate) && (vehicleType == null || vehicleType.equalsIgnoreCase(time.getVehicleType())))
+                    .peek(time -> {
+                        time.setWorkshop(manchesterName);
+                        time.setAddress(manchesterAddress);
+                        time.setVehicleType(manchesterVehicleTypes[0]);
+                    })
                     .collect(Collectors.toList());
         } else if ("london".equalsIgnoreCase(workshop)) {
             ResponseEntity<String> response = restTemplate.getForEntity(
@@ -61,7 +84,10 @@ public class ExternalWorkshopService {
                     time.setId(item.path("uuid").asText());
                     time.setTime(item.path("time").asText());
                     time.setAvailable(true);
-                    if (isFutureDate(time.getTime())) {
+                    time.setWorkshop(londonName);
+                    time.setAddress(londonAddress);
+                    time.setVehicleType(londonVehicleTypes[0]);
+                    if (isWithinDateRange(time.getTime(), from, until) && (vehicleType == null || vehicleType.equalsIgnoreCase(time.getVehicleType()))) {
                         times.add(time);
                     }
                 });
@@ -78,9 +104,11 @@ public class ExternalWorkshopService {
         return appointmentTime.toLocalDate().equals(selectedDate);
     }
 
-    private boolean isFutureDate(String time) {
+    private boolean isWithinDateRange(String time, String from, String until) {
         LocalDateTime appointmentTime = LocalDateTime.parse(time, DateTimeFormatter.ISO_DATE_TIME);
-        return appointmentTime.isAfter(LocalDateTime.now());
+        LocalDate fromDate = LocalDate.parse(from);
+        LocalDate untilDate = until != null ? LocalDate.parse(until) : fromDate;
+        return !appointmentTime.toLocalDate().isBefore(fromDate) && !appointmentTime.toLocalDate().isAfter(untilDate);
     }
 
     public TireChangeTimeBookingResponse bookAppointment(String workshop, String id, TireChangeBookingRequest request) {
