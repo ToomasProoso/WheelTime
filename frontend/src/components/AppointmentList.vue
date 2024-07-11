@@ -6,9 +6,9 @@
       <option value="london">London</option>
     </select>
     <label for="fromDate">Alates kuupäev:</label>
-    <input type="date" v-model="fromDate" id="fromDate" required>
+    <input type="date" v-model="fromDate" :min="minFromDate" id="fromDate" required>
     <label for="untilDate" v-if="selectedWorkshop === 'london'">Kuni kuupäev:</label>
-    <input type="date" v-model="untilDate" id="untilDate" v-if="selectedWorkshop === 'london'">
+    <input type="date" v-model="untilDate" :min="fromDate" id="untilDate" v-if="selectedWorkshop === 'london'">
     <label for="vehicleType">Sõiduki tüüp:</label>
     <select v-model="vehicleType" id="vehicleType">
       <option v-for="type in vehicleTypeOptions" :key="type" :value="type">{{ type }}</option>
@@ -37,6 +37,10 @@ export default {
     };
   },
   computed: {
+    minFromDate() {
+      const today = new Date();
+      return today.toISOString().split('T')[0];
+    },
     vehicleTypeOptions() {
       if (this.selectedWorkshop === 'manchester') {
         return ['Sõiduauto', 'Veoauto'];
@@ -61,6 +65,9 @@ export default {
       this.fetchAppointments();
     },
     fromDate() {
+      if (this.untilDate && new Date(this.untilDate) < new Date(this.fromDate)) {
+        this.untilDate = '';
+      }
       this.fetchAppointments();
     },
     untilDate() {
