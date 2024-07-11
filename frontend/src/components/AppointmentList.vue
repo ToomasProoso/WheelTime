@@ -11,9 +11,7 @@
     <input type="date" v-model="untilDate" id="untilDate" v-if="selectedWorkshop === 'london'">
     <label for="vehicleType">Sõiduki tüüp:</label>
     <select v-model="vehicleType" id="vehicleType">
-      <option value="">Kõik</option>
-      <option value="Sõiduauto">Sõiduauto</option>
-      <option value="Veoauto">Veoauto</option>
+      <option v-for="type in vehicleTypeOptions" :key="type" :value="type">{{ type }}</option>
     </select>
     <button @click="fetchAppointments">Otsi aegu</button>
     <ul>
@@ -34,9 +32,28 @@ export default {
       selectedWorkshop: 'manchester',
       fromDate: '',
       untilDate: '',
-      vehicleType: '',
+      vehicleType: 'Sõiduauto',
       selectedAppointment: null
     };
+  },
+  computed: {
+    vehicleTypeOptions() {
+      if (this.selectedWorkshop === 'manchester') {
+        return ['Sõiduauto', 'Veoauto'];
+      } else if (this.selectedWorkshop === 'london') {
+        return ['Sõiduauto', 'Veoauto'];
+      }
+      return [];
+    },
+    filteredAppointments() {
+      const now = new Date();
+      return this.appointments.filter(appointment => {
+        const appointmentDate = new Date(appointment.time);
+        const fromDate = new Date(this.fromDate);
+        const untilDate = this.selectedWorkshop === 'london' ? new Date(this.untilDate) : fromDate;
+        return appointmentDate >= now && appointmentDate >= fromDate && (!this.untilDate || appointmentDate <= untilDate);
+      });
+    }
   },
   watch: {
     selectedWorkshop() {
@@ -51,17 +68,6 @@ export default {
     },
     vehicleType() {
       this.fetchAppointments();
-    }
-  },
-  computed: {
-    filteredAppointments() {
-      const now = new Date();
-      return this.appointments.filter(appointment => {
-        const appointmentDate = new Date(appointment.time);
-        const fromDate = new Date(this.fromDate);
-        const untilDate = this.selectedWorkshop === 'london' ? new Date(this.untilDate) : fromDate;
-        return appointmentDate >= now && appointmentDate >= fromDate && (!this.untilDate || appointmentDate <= untilDate);
-      });
     }
   },
   methods: {
@@ -82,7 +88,7 @@ export default {
       this.appointments = [];
       this.fromDate = '';
       this.untilDate = '';
-      this.vehicleType = '';
+      this.vehicleType = 'Sõiduauto';
       this.selectedAppointment = null;
     }
   },
