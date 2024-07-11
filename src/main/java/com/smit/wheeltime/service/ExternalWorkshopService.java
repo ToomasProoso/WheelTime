@@ -74,8 +74,7 @@ public class ExternalWorkshopService {
                     requestUrl,
                     HttpMethod.GET,
                     null,
-                    new ParameterizedTypeReference<List<TireChangeTime>>() {
-                    }
+                    new ParameterizedTypeReference<List<TireChangeTime>>() {}
             );
             return filterManchesterAppointments(response.getBody(), from, vehicleType);
         } catch (Exception e) {
@@ -101,8 +100,8 @@ public class ExternalWorkshopService {
 
         return appointments.stream()
                 .filter(time -> time.isAvailable() && isSameDay(time.getTime(), selectedDate) && LocalDateTime.parse(time.getTime(), DateTimeFormatter.ISO_DATE_TIME).isAfter(now))
-                .filter(time -> vehicleType == null || time.getVehicleType().equalsIgnoreCase(vehicleType))
-                .peek(time -> setManchesterWorkshopDetails(time))
+                .peek(this::setManchesterWorkshopDetails)
+                .filter(time -> vehicleType == null || time.getVehicleType().contains(vehicleType))
                 .collect(Collectors.toList());
     }
 
@@ -136,9 +135,17 @@ public class ExternalWorkshopService {
     }
 
     private List<TireChangeTime> filterLondonAppointments(List<TireChangeTime> times, String from, String until, String vehicleType) {
+        LocalDateTime now = LocalDateTime.now();
         return times.stream()
-                .filter(time -> isWithinDateRange(time.getTime(), from, until) && (vehicleType == null || time.getVehicleType().equalsIgnoreCase(vehicleType)))
+                .filter(time -> isWithinDateRange(time.getTime(), from, until) && LocalDateTime.parse(time.getTime(), DateTimeFormatter.ISO_DATE_TIME).isAfter(now))
+                .filter(time -> vehicleType == null || time.getVehicleType().equalsIgnoreCase(vehicleType))
+                .peek(this::setLondonWorkshopDetails)
                 .collect(Collectors.toList());
+    }
+
+    private void setLondonWorkshopDetails(TireChangeTime time) {
+        time.setWorkshop(londonName);
+        time.setAddress(londonAddress);
     }
 
     private boolean isSameDay(String time, LocalDate selectedDate) {

@@ -44,7 +44,7 @@ export default {
       return this.appointments.filter(appointment => {
         const appointmentDate = new Date(appointment.time);
         const fromDate = new Date(this.fromDate);
-        const untilDate = new Date(this.untilDate);
+        const untilDate = this.selectedWorkshop === 'london' ? new Date(this.untilDate) : fromDate;
         return appointmentDate >= now && appointmentDate >= fromDate && (!this.untilDate || appointmentDate <= untilDate);
       });
     }
@@ -53,7 +53,7 @@ export default {
     async fetchAppointments() {
       console.log(`Fetching appointments for workshop: ${this.selectedWorkshop}`);
       try {
-        this.appointments = await getAvailableAppointments(this.selectedWorkshop, this.fromDate, this.selectedWorkshop === 'london' ? this.untilDate : this.fromDate, this.vehicleType);
+        this.appointments = await getAvailableAppointments(this.selectedWorkshop, this.fromDate, this.selectedWorkshop === 'london' ? this.untilDate : null, this.vehicleType);
         console.log('Received appointments:', this.appointments);
       } catch (error) {
         console.error('Error fetching appointments:', error);
