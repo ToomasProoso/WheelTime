@@ -12,8 +12,8 @@
     <label for="vehicleType">Sõiduki tüüp:</label>
     <select v-model="vehicleType" id="vehicleType">
       <option value="">Kõik</option>
-      <option value="sõiduauto">Sõiduauto</option>
-      <option value="veoauto">Veoauto</option>
+      <option value="Sõiduauto">Sõiduauto</option>
+      <option value="Veoauto">Veoauto</option>
     </select>
     <button @click="fetchAppointments">Otsi aegu</button>
     <ul>
@@ -54,6 +54,7 @@ export default {
       console.log(`Fetching appointments for workshop: ${this.selectedWorkshop}`);
       try {
         this.appointments = await getAvailableAppointments(this.selectedWorkshop, this.fromDate, this.selectedWorkshop === 'london' ? this.untilDate : this.fromDate, this.vehicleType);
+        console.log('Received appointments:', this.appointments);
       } catch (error) {
         console.error('Error fetching appointments:', error);
       }
