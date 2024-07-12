@@ -19,10 +19,8 @@ export async function getAvailableAppointments(workshop, fromDate, untilDate, ve
 
 export async function bookAppointment(workshop, id, request) {
     const url = `${API_BASE_URL}/appointments/${id}/booking?workshop=${workshop.toLowerCase()}`;
-    console.log('Booking URL:', url); // Debug log
-    console.log('Request body:', request); // Debug log
-    let response;
     try {
+        let response;
         if (workshop.toLowerCase() === 'manchester') {
             response = await axios.post(url, request, {
                 headers: {
@@ -39,10 +37,9 @@ export async function bookAppointment(workshop, id, request) {
                 }
             });
         }
-        console.log('Response:', response); // Debug log
-        return response.data;
+        return response;
     } catch (error) {
-        console.error('API call error:', error); // Debug log
+        console.error('API call error:', error);
         throw error;
     }
 }
