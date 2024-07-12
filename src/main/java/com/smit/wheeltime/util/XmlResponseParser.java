@@ -2,7 +2,7 @@ package com.smit.wheeltime.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.smit.wheeltime.model.TireChangeTime;
+import com.smit.wheeltime.models.TireChangeTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

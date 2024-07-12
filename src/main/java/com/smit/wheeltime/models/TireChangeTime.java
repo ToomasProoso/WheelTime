@@ -1,4 +1,4 @@
-package com.smit.wheeltime.model;
+package com.smit.wheeltime.models;
 
 import lombok.Data;
 import lombok.Getter;

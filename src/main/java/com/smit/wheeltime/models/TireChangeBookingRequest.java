@@ -1,4 +1,4 @@
-package com.smit.wheeltime.model;
+package com.smit.wheeltime.models;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.Data;

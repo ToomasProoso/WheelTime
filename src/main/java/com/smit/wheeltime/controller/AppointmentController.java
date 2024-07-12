@@ -1,8 +1,8 @@
 package com.smit.wheeltime.controller;
 
-import com.smit.wheeltime.model.TireChangeBookingRequest;
-import com.smit.wheeltime.model.TireChangeTime;
-import com.smit.wheeltime.model.TireChangeTimeBookingResponse;
+import com.smit.wheeltime.models.TireChangeBookingRequest;
+import com.smit.wheeltime.models.TireChangeTime;
+import com.smit.wheeltime.models.TireChangeTimeBookingResponse;
 import com.smit.wheeltime.service.ExternalWorkshopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -1,8 +1,8 @@
 package com.smit.wheeltime.service;
 
-import com.smit.wheeltime.model.TireChangeBookingRequest;
-import com.smit.wheeltime.model.TireChangeTime;
-import com.smit.wheeltime.model.TireChangeTimeBookingResponse;
+import com.smit.wheeltime.models.TireChangeBookingRequest;
+import com.smit.wheeltime.models.TireChangeTime;
+import com.smit.wheeltime.models.TireChangeTimeBookingResponse;
 import com.smit.wheeltime.util.XmlResponseParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
