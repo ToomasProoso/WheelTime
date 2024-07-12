@@ -2,8 +2,12 @@
   <div>
     <h1>Broneeri rehvivahetuse aeg</h1>
     <form @submit.prevent="bookAppointment">
-      <label for="id">Aeg:</label>
+      <label for="time">Aeg:</label>
       <input type="text" v-model="time" id="time" required readonly>
+
+      <label for="contactInformation">Nimi või auto nr:</label>
+      <input type="text" v-model="contactInformation" id="contactInformation" required>
+
       <button type="submit">Broneeri</button>
     </form>
     <p>{{ message }}</p>
@@ -19,7 +23,7 @@ export default {
     return {
       id: '',
       time: '',
-      contactInformation: 'your_contact_info', // Replace this with actual contact information if needed
+      contactInformation: '', // Dünaamiline välja
       message: ''
     };
   },
