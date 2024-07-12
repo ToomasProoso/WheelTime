@@ -9,8 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -162,11 +161,29 @@ public class ExternalWorkshopService {
 
     public TireChangeTimeBookingResponse bookAppointment(String workshop, String id, TireChangeBookingRequest request) {
         String apiUrl = getWorkshopApiUrl(workshop);
-        if (apiUrl == null) return null;
+        if (apiUrl == null) {
+            throw new IllegalArgumentException("Invalid workshop specified");
+        }
+
+        logger.info("Booking appointment for workshop: {}, id: {}, request: {}", workshop, id, request);
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<?> entity;
+
+        if ("manchester".equalsIgnoreCase(workshop)) {
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            entity = new HttpEntity<>(request, headers);
+        } else if ("london".equalsIgnoreCase(workshop)) {
+            headers.setContentType(MediaType.APPLICATION_XML);
+            String xmlBody = String.format("<tireChangeBookingRequest><time>%s</time></tireChangeBookingRequest>", request.getTime());
+            entity = new HttpEntity<>(xmlBody, headers);
+        } else {
+            throw new IllegalArgumentException("Unsupported workshop");
+        }
 
         ResponseEntity<TireChangeTimeBookingResponse> response = restTemplate.postForEntity(
                 apiUrl + "/tire-change-times/" + id + "/booking",
-                request,
+                entity,
                 TireChangeTimeBookingResponse.class
         );
         return response.getBody();

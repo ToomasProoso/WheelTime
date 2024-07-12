@@ -2,14 +2,7 @@
   <div>
     <h1>Broneeri rehvivahetuse aeg</h1>
     <form @submit.prevent="bookAppointment">
-      <label for="id">Aja ID:</label>
-      <input type="text" v-model="id" id="id" required readonly>
-      <label for="vehicleType">Sõiduki tüüp:</label>
-      <select v-model="vehicleType" id="vehicleType" required>
-        <option value="sõiduauto">Sõiduauto</option>
-        <option value="veoauto">Veoauto</option>
-      </select>
-      <label for="time">Aeg:</label>
+      <label for="id">Aeg:</label>
       <input type="text" v-model="time" id="time" required readonly>
       <button type="submit">Broneeri</button>
     </form>
@@ -25,7 +18,6 @@ export default {
   data() {
     return {
       id: '',
-      vehicleType: '',
       time: '',
       message: ''
     };
@@ -33,13 +25,14 @@ export default {
   methods: {
     async bookAppointment() {
       try {
-        await bookAppointment(this.selectedWorkshop, this.id, {
-          vehicleType: this.vehicleType,
-          time: this.time
-        });
+        const requestBody = {
+          contactInformation: 'string', // replace this with actual contact information if needed
+          workshop: this.selectedWorkshop
+        };
+        await bookAppointment(this.selectedWorkshop, this.id, requestBody);
         this.message = 'Broneering õnnestus!';
       } catch (error) {
-        this.message = 'Broneering ebaõnnestus: ' + error.response.data.message;
+        this.message = 'Broneering ebaõnnestus: ' + (error.response && error.response.data ? error.response.data.message : error.message);
       }
     }
   },
@@ -49,7 +42,6 @@ export default {
       handler(appointment) {
         if (appointment) {
           this.id = appointment.id || appointment.uuid;
-          this.vehicleType = appointment.vehicleType || '';
           this.time = appointment.time;
         }
       }

@@ -18,8 +18,7 @@ export async function getAvailableAppointments(workshop, fromDate, untilDate, ve
 }
 
 export async function bookAppointment(workshop, id, request) {
-    const response = await axios.post(`${API_BASE_URL}/appointments/${id}/booking`, request, {
-        params: { workshop }
-    });
+    const url = `${API_BASE_URL}/appointments/${id}/booking`;
+    const response = await axios.post(url, request);
     return response.data;
 }
