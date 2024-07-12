@@ -42,12 +42,7 @@ export default {
       return today.toISOString().split('T')[0];
     },
     vehicleTypeOptions() {
-      if (this.selectedWorkshop === 'manchester') {
-        return ['Sõiduauto', 'Veoauto'];
-      } else if (this.selectedWorkshop === 'london') {
-        return ['Sõiduauto', 'Veoauto'];
-      }
-      return [];
+      return ['Sõiduauto', 'Veoauto'];
     },
     filteredAppointments() {
       const now = new Date();
@@ -89,7 +84,7 @@ export default {
     },
     selectAppointment(appointment) {
       this.selectedAppointment = appointment;
-      this.$emit('appointment-selected', appointment);
+      this.$emit('appointment-selected', { appointment, workshop: this.selectedWorkshop });
     },
     resetData() {
       this.appointments = [];
