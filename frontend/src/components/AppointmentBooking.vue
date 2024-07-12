@@ -37,7 +37,7 @@ export default {
         };
         const response = await bookAppointment(this.localSelectedWorkshop, this.id, requestBody);
         if (response.status === 200) {
-          this.message = 'Broneering õnnestus!';
+          this.message = `Broneering õnnestus! Aeg: ${this.time}, Nimi või auto nr: ${this.contactInformation}`;
           this.time = '';
           this.contactInformation = '';
         } else {
