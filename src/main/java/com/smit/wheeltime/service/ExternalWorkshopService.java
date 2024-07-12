@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -73,7 +74,8 @@ public class ExternalWorkshopService {
                     requestUrl,
                     HttpMethod.GET,
                     null,
-                    new ParameterizedTypeReference<List<TireChangeTime>>() {}
+                    new ParameterizedTypeReference<List<TireChangeTime>>() {
+                    }
             );
             return filterManchesterAppointments(response.getBody(), from, vehicleType);
         } catch (Exception e) {
@@ -165,28 +167,44 @@ public class ExternalWorkshopService {
             throw new IllegalArgumentException("Invalid workshop specified");
         }
 
-        logger.info("Booking appointment for workshop: {}, id: {}, request: {}", workshop, id, request);
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("time", request.getTime());
+            HttpEntity<?> entity;
+            ResponseEntity<TireChangeTimeBookingResponse> response;
 
-        HttpHeaders headers = new HttpHeaders();
-        HttpEntity<?> entity;
+            if ("manchester".equalsIgnoreCase(workshop)) {
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                entity = new HttpEntity<>(request, headers);
+                response = restTemplate.postForEntity(apiUrl + "/tire-change-times/" + id + "/booking", entity, TireChangeTimeBookingResponse.class);
+            } else if ("london".equalsIgnoreCase(workshop)) {
+                headers.setContentType(MediaType.APPLICATION_XML);
+                String xmlBody = String.format("<tireChangeBookingRequest><contactInformation>%s</contactInformation><time>%s</time></tireChangeBookingRequest>",
+                        request.getContactInformation(), request.getTime());
+                entity = new HttpEntity<>(xmlBody, headers);
+                response = restTemplate.exchange(apiUrl + "/tire-change-times/" + id + "/booking", HttpMethod.PUT, entity, TireChangeTimeBookingResponse.class);
+            } else {
+                throw new IllegalArgumentException("Unsupported workshop");
+            }
 
-        if ("manchester".equalsIgnoreCase(workshop)) {
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            entity = new HttpEntity<>(request, headers);
-        } else if ("london".equalsIgnoreCase(workshop)) {
-            headers.setContentType(MediaType.APPLICATION_XML);
-            String xmlBody = String.format("<tireChangeBookingRequest><time>%s</time></tireChangeBookingRequest>", request.getTime());
-            entity = new HttpEntity<>(xmlBody, headers);
-        } else {
-            throw new IllegalArgumentException("Unsupported workshop");
+            if (response.getStatusCode() == HttpStatus.OK) {
+                return response.getBody();
+            } else {
+                logger.error("Failed to book appointment: {}", response.getStatusCode());
+                throw new RuntimeException("Failed to book appointment");
+            }
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.UNPROCESSABLE_ENTITY) {
+                logger.error("Failed to book appointment: {}", e.getResponseBodyAsString());
+                throw new RuntimeException("Failed to book appointment: " + e.getResponseBodyAsString());
+            } else {
+                logger.error("Error booking appointment", e);
+                throw new RuntimeException("Error booking appointment", e);
+            }
+        } catch (Exception e) {
+            logger.error("Error booking appointment", e);
+            throw new RuntimeException("Error booking appointment", e);
         }
-
-        ResponseEntity<TireChangeTimeBookingResponse> response = restTemplate.postForEntity(
-                apiUrl + "/tire-change-times/" + id + "/booking",
-                entity,
-                TireChangeTimeBookingResponse.class
-        );
-        return response.getBody();
     }
 
     private String getWorkshopApiUrl(String workshop) {

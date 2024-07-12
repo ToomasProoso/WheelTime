@@ -19,6 +19,22 @@ export async function getAvailableAppointments(workshop, fromDate, untilDate, ve
 
 export async function bookAppointment(workshop, id, request) {
     const url = `${API_BASE_URL}/appointments/${id}/booking`;
-    const response = await axios.post(url, request);
+    let response;
+    if (workshop === 'manchester') {
+        response = await axios.post(url, request, {
+            headers: {
+                'Content-Type': 'application/json',
+                'time': request.time
+            }
+        });
+    } else if (workshop === 'london') {
+        const xmlBody = `<tireChangeBookingRequest><contactInformation>${request.contactInformation}</contactInformation><time>${request.time}</time></tireChangeBookingRequest>`;
+        response = await axios.put(url, xmlBody, {
+            headers: {
+                'Content-Type': 'text/xml',
+                'time': request.time
+            }
+        });
+    }
     return response.data;
 }

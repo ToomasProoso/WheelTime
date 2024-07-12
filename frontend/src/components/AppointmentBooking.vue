@@ -19,6 +19,7 @@ export default {
     return {
       id: '',
       time: '',
+      contactInformation: 'string', // Replace this with actual contact information if needed
       message: ''
     };
   },
@@ -26,11 +27,11 @@ export default {
     async bookAppointment() {
       try {
         const requestBody = {
-          contactInformation: 'string', // replace this with actual contact information if needed
-          workshop: this.selectedWorkshop
+          contactInformation: this.contactInformation,
+          time: this.time
         };
-        await bookAppointment(this.selectedWorkshop, this.id, requestBody);
-        this.message = 'Broneering õnnestus!';
+        const response = await bookAppointment(this.selectedWorkshop, this.id, requestBody);
+        this.message = response.status === 'success' ? 'Broneering õnnestus!' : `Broneering ebaõnnestus: ${response.message}`;
       } catch (error) {
         this.message = 'Broneering ebaõnnestus: ' + (error.response && error.response.data ? error.response.data.message : error.message);
       }
