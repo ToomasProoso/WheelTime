@@ -74,10 +74,8 @@ export default {
   },
   methods: {
     async fetchAppointments() {
-      console.log(`Fetching appointments for workshop: ${this.selectedWorkshop}`);
       try {
         this.appointments = await getAvailableAppointments(this.selectedWorkshop, this.fromDate, this.selectedWorkshop === 'london' ? this.untilDate : null, this.vehicleType);
-        console.log('Received appointments:', this.appointments);
       } catch (error) {
         console.error('Error fetching appointments:', error);
       }
