@@ -36,9 +36,15 @@ export default {
           time: this.time
         };
         const response = await bookAppointment(this.localSelectedWorkshop, this.id, requestBody);
-        this.message = response.status === 200 ? 'Broneering õnnestus, peatselt kohtumiseni!' : `Broneering ebaõnnestus: ${response.data.message || 'Unknown error'}`;
+        if (response.status === 200) {
+          this.message = 'Broneering õnnestus!';
+          this.time = '';
+          this.contactInformation = '';
+        } else {
+          this.message = `Broneering ebaõnnestus: ${response.data.message || 'Unknown error'}`;
+        }
       } catch (error) {
-        this.message = 'Broneering ebaõnnestus!!!';
+        this.message = 'Broneering ebaõnnestus: ' + (error.response && error.response.data ? error.response.data.message : error.message);
       }
     }
   },
