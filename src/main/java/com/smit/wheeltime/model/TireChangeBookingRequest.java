@@ -10,5 +10,3 @@ public class TireChangeBookingRequest {
     private String time;
     // You can add other fields here if required by the API
 }
-
-

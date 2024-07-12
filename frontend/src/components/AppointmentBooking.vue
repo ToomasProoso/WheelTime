@@ -19,7 +19,7 @@ export default {
     return {
       id: '',
       time: '',
-      contactInformation: 'string', // Replace this with actual contact information if needed
+      contactInformation: 'your_contact_info', // Replace this with actual contact information if needed
       message: ''
     };
   },
