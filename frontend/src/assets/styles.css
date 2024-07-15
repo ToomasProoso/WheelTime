@@ -1,0 +1,50 @@
+body {
+    background-image: url('./SUV.webp'); /* Ensure the path is correct */
+    background-size: cover; /* Cover the entire background */
+    background-position: center; /* Center the image */
+    background-repeat: no-repeat;
+    font-family: Arial, sans-serif;
+    height: 100vh; /* Ensure the background covers the full height */
+    margin: 0; /* Remove default margin */
+    display: flex;
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
+}
+
+#app {
+    background: rgba(255, 255, 255, 0.8); /* White background with some transparency */
+    padding: 40px; /* Increase padding for equal space around the content */
+    border-radius: 10px;
+    max-width: 1200px;
+    width: calc(100% - 1px); /* Ensure it uses full width minus padding */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box; /* Include padding in the element's total width and height */
+}
+
+h1 {
+    color: #333;
+}
+
+form, ul {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
