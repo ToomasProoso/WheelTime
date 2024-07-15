@@ -5,10 +5,12 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.smit.wheeltime.models.TireChangeTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class XmlResponseParser {
 
     private static final Logger logger = LoggerFactory.getLogger(XmlResponseParser.class);
