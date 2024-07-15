@@ -1,36 +1,30 @@
 package com.smit.wheeltime.service;
 
+import com.smit.wheeltime.exception.AppointmentExceptions;
 import com.smit.wheeltime.models.TireChangeBookingRequest;
 import com.smit.wheeltime.models.TireChangeTime;
 import com.smit.wheeltime.models.TireChangeTimeBookingResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.time.LocalDateTime.*;
-import static java.time.format.DateTimeFormatter.*;
-import static java.util.stream.Collectors.*;
-import static org.springframework.http.HttpMethod.*;
-import static org.springframework.http.MediaType.*;
-import static org.springframework.web.util.UriComponentsBuilder.*;
+import static java.time.LocalDateTime.now;
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.web.util.UriComponentsBuilder.fromHttpUrl;
 
 @Service
 public class ManchesterService implements WorkshopService {
-
-    private static final Logger logger = LoggerFactory.getLogger(ManchesterService.class);
 
     @Value("${workshop.api.manchester}")
     private String manchesterApiUrl;
@@ -53,7 +47,6 @@ public class ManchesterService implements WorkshopService {
     @Override
     public List<TireChangeTime> fetchAppointments(String from, String until, String vehicleType) {
         String requestUrl = buildManchesterRequestUrl(from);
-        logger.info("Fetching Manchester appointments with URL: {}", requestUrl);
 
         try {
             ResponseEntity<List<TireChangeTime>> response = restTemplate.exchange(
@@ -65,9 +58,9 @@ public class ManchesterService implements WorkshopService {
             );
             return filterManchesterAppointments(response.getBody(), from, vehicleType);
         } catch (Exception e) {
-            logger.error("Error fetching Manchester appointments: {}", e.getMessage(), e);
-            return new ArrayList<>();
+            AppointmentExceptions.throwBookingException("Error fetching Manchester appointments: " + e.getMessage());
         }
+        return new ArrayList<>();
     }
 
     private String buildManchesterRequestUrl(String from) {
@@ -79,7 +72,6 @@ public class ManchesterService implements WorkshopService {
     private List<TireChangeTime> filterManchesterAppointments(
             List<TireChangeTime> appointments, String from, String vehicleType) {
         if (appointments == null || appointments.isEmpty()) {
-            logger.warn("No appointments received from Manchester API");
             return new ArrayList<>();
         }
 
@@ -89,10 +81,10 @@ public class ManchesterService implements WorkshopService {
         return appointments.stream()
                 .filter(time -> time.isAvailable()
                         && isSameDay(time.getTime(), selectedDate)
-                        && parse(time.getTime(), ISO_DATE_TIME).isAfter(now))
+                        && LocalDateTime.parse(time.getTime(), ISO_DATE_TIME).isAfter(now))
                 .peek(this::setManchesterWorkshopDetails)
                 .filter(time -> vehicleType == null || time.getVehicleType().contains(vehicleType))
-                .collect(toList());
+                .collect(Collectors.toList());
     }
 
     private void setManchesterWorkshopDetails(TireChangeTime time) {
@@ -104,7 +96,7 @@ public class ManchesterService implements WorkshopService {
     }
 
     private boolean isSameDay(String time, LocalDate selectedDate) {
-        LocalDateTime appointmentTime = parse(time, ISO_DATE_TIME);
+        LocalDateTime appointmentTime = LocalDateTime.parse(time, ISO_DATE_TIME);
         return appointmentTime.toLocalDate().equals(selectedDate);
     }
 
@@ -115,29 +107,30 @@ public class ManchesterService implements WorkshopService {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.add("time", request.getTime());
-            headers.setContentType(APPLICATION_JSON);
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
             HttpEntity<TireChangeBookingRequest> entity = new HttpEntity<>(request, headers);
             ResponseEntity<TireChangeTimeBookingResponse> response = restTemplate.postForEntity(
                     apiUrl + "/tire-change-times/" + id + "/booking", entity, TireChangeTimeBookingResponse.class);
 
-            if (response.getStatusCode() == HttpStatus.OK) {
+            if (response.getStatusCode() == OK) {
                 return response.getBody();
             } else {
-                logger.error("Failed to book appointment: {}", response.getStatusCode());
-                throw new RuntimeException("Failed to book appointment");
+                AppointmentExceptions.throwBookingException("Failed to book appointment");
             }
         } catch (HttpClientErrorException e) {
-            if (e.getStatusCode() == HttpStatus.UNPROCESSABLE_ENTITY) {
-                logger.error("Failed to book appointment: {}", e.getResponseBodyAsString());
-                throw new RuntimeException("Failed to book appointment: " + e.getResponseBodyAsString());
-            } else {
-                logger.error("Error booking appointment", e);
-                throw new RuntimeException("Error booking appointment", e);
-            }
+            handleHttpClientErrorException(e);
         } catch (Exception e) {
-            logger.error("Error booking appointment", e);
-            throw new RuntimeException("Error booking appointment", e);
+            AppointmentExceptions.throwBookingException("Error booking appointment: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private void handleHttpClientErrorException(HttpClientErrorException e) {
+        if (e.getStatusCode() == HttpStatus.UNPROCESSABLE_ENTITY) {
+            AppointmentExceptions.throwBookingException("Failed to book appointment: " + e.getResponseBodyAsString());
+        } else {
+            AppointmentExceptions.throwBookingException("Error booking appointment: " + e.getMessage());
         }
     }
 }

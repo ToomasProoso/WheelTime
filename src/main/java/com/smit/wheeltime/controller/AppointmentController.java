@@ -1,19 +1,21 @@
 package com.smit.wheeltime.controller;
 
+import com.smit.wheeltime.exception.AppointmentExceptions;
 import com.smit.wheeltime.models.TireChangeBookingRequest;
 import com.smit.wheeltime.models.TireChangeTime;
 import com.smit.wheeltime.models.TireChangeTimeBookingResponse;
-import com.smit.wheeltime.service.ManchesterService;
 import com.smit.wheeltime.service.LondonService;
+import com.smit.wheeltime.service.ManchesterService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static org.springframework.http.HttpStatus.*;
-import static org.springframework.http.ResponseEntity.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.METHOD_NOT_ALLOWED;
+import static org.springframework.http.ResponseEntity.ok;
+import static org.springframework.http.ResponseEntity.status;
 
 @RestController
 @RequestMapping("/api/appointments")
@@ -33,12 +35,15 @@ public class AppointmentController {
                                                          @RequestParam String from,
                                                          @RequestParam(required = false) String until,
                                                          @RequestParam(required = false) String vehicleType) {
-        if ("manchester".equalsIgnoreCase(workshop)) {
-            return manchesterService.fetchAppointments(from, until, vehicleType);
-        } else if ("london".equalsIgnoreCase(workshop)) {
-            return londonService.fetchAppointments(from, until, vehicleType);
+        switch (workshop.toLowerCase()) {
+            case "manchester":
+                return manchesterService.fetchAppointments(from, until, vehicleType);
+            case "london":
+                return londonService.fetchAppointments(from, until, vehicleType);
+            default:
+                AppointmentExceptions.throwInvalidWorkshopException("Invalid workshop: " + workshop);
+                return List.of();
         }
-        return List.of();
     }
 
     @PostMapping("/{id}/booking")
@@ -52,9 +57,8 @@ public class AppointmentController {
                 return status(METHOD_NOT_ALLOWED).body(
                         new TireChangeTimeBookingResponse("failure", "Use PUT for London workshop"));
             }
-        } catch (RuntimeException e) {
-            return status(BAD_REQUEST).body(
-                    new TireChangeTimeBookingResponse("failure", e.getMessage()));
+        } catch (AppointmentExceptions.AppointmentException e) {
+            return status(BAD_REQUEST).body(new TireChangeTimeBookingResponse("failure", e.getMessage()));
         }
     }
 
@@ -69,9 +73,8 @@ public class AppointmentController {
                 return status(METHOD_NOT_ALLOWED).body(
                         new TireChangeTimeBookingResponse("failure", "Use POST for Manchester workshop"));
             }
-        } catch (RuntimeException e) {
-            return status(BAD_REQUEST).body(
-                    new TireChangeTimeBookingResponse("failure", e.getMessage()));
+        } catch (AppointmentExceptions.AppointmentException e) {
+            return status(BAD_REQUEST).body(new TireChangeTimeBookingResponse("failure", e.getMessage()));
         }
     }
 }

@@ -96,7 +96,7 @@ export default {
       this.fetchAppointments();
     },
     filteredAppointments() {
-      this.currentPage = 1; // Reset to first page if filteredAppointments change
+      this.currentPage = 1;
     }
   },
   methods: {
@@ -109,7 +109,8 @@ export default {
     },
     selectAppointment(appointment) {
       this.selectedAppointment = appointment;
-      this.$emit('appointment-selected', { appointment, workshop: this.selectedWorkshop });
+      const localTime = new Date(appointment.time).toLocaleString('en-US', { timeZone: 'Europe/Moscow' }); // UTC+3
+      this.$emit('appointment-selected', { appointment: { ...appointment, time: localTime }, workshop: this.selectedWorkshop });
     },
     resetData() {
       this.appointments = [];
@@ -123,7 +124,7 @@ export default {
       this.$emit('clear-message');
     },
     formatDate(dateString) {
-      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow' }; // UTC+3
       return new Date(dateString).toLocaleString('et-EE', options);
     },
     nextPage() {

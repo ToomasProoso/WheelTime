@@ -1,37 +1,30 @@
 package com.smit.wheeltime.service;
 
+import com.smit.wheeltime.exception.AppointmentExceptions;
 import com.smit.wheeltime.models.TireChangeBookingRequest;
 import com.smit.wheeltime.models.TireChangeTime;
 import com.smit.wheeltime.models.TireChangeTimeBookingResponse;
-
 import com.smit.wheeltime.util.XmlResponseParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.time.LocalDateTime.*;
-import static java.time.format.DateTimeFormatter.*;
-import static org.slf4j.LoggerFactory.*;
-import static org.springframework.http.HttpMethod.*;
-import static org.springframework.http.HttpStatus.*;
-import static org.springframework.http.MediaType.*;
-import static org.springframework.web.util.UriComponentsBuilder.*;
+import static java.time.LocalDateTime.now;
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static org.springframework.http.HttpMethod.PUT;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.MediaType.APPLICATION_XML;
+import static org.springframework.web.util.UriComponentsBuilder.fromHttpUrl;
 
 @Service
 public class LondonService implements WorkshopService {
-
-    private static final Logger logger = getLogger(LondonService.class);
 
     @Value("${workshop.api.london}")
     private String londonApiUrl;
@@ -56,7 +49,6 @@ public class LondonService implements WorkshopService {
     @Override
     public List<TireChangeTime> fetchAppointments(String from, String until, String vehicleType) {
         String requestUrl = buildLondonRequestUrl(from, until);
-        logger.info("Fetching London appointments with URL: {}", requestUrl);
 
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(requestUrl, String.class);
@@ -64,9 +56,9 @@ public class LondonService implements WorkshopService {
                     response.getBody(), londonName, londonAddress, londonVehicleTypes[0]);
             return filterLondonAppointments(times, from, until, vehicleType);
         } catch (Exception e) {
-            logger.error("Error fetching London appointments: {}", e.getMessage(), e);
-            return List.of();
+            AppointmentExceptions.throwBookingException("Error fetching London appointments: " + e.getMessage());
         }
+        return List.of();
     }
 
     private String buildLondonRequestUrl(String from, String until) {
@@ -81,7 +73,7 @@ public class LondonService implements WorkshopService {
         LocalDateTime now = now();
         return times.stream()
                 .filter(time -> isWithinDateRange(time.getTime(), from, until)
-                        && parse(time.getTime(), ISO_DATE_TIME).isAfter(now))
+                        && LocalDateTime.parse(time.getTime(), ISO_DATE_TIME).isAfter(now))
                 .filter(time -> vehicleType == null || time.getVehicleType().equalsIgnoreCase(vehicleType))
                 .peek(this::setLondonWorkshopDetails)
                 .collect(Collectors.toList());
@@ -93,7 +85,7 @@ public class LondonService implements WorkshopService {
     }
 
     private boolean isWithinDateRange(String time, String from, String until) {
-        LocalDateTime appointmentTime = parse(time, ISO_DATE_TIME);
+        LocalDateTime appointmentTime = LocalDateTime.parse(time, ISO_DATE_TIME);
         LocalDate fromDate = LocalDate.parse(from);
         LocalDate untilDate = until != null ? LocalDate.parse(until) : fromDate;
         return !appointmentTime.toLocalDate().isBefore(fromDate) && !appointmentTime.toLocalDate().isAfter(untilDate);
@@ -114,26 +106,26 @@ public class LondonService implements WorkshopService {
             HttpEntity<String> entity = new HttpEntity<>(xmlBody, headers);
 
             ResponseEntity<TireChangeTimeBookingResponse> response = restTemplate.exchange(
-                    apiUrl + "/tire-change-times/" + id + "/booking"
-                    , PUT, entity, TireChangeTimeBookingResponse.class);
+                    apiUrl + "/tire-change-times/" + id + "/booking", PUT, entity, TireChangeTimeBookingResponse.class);
 
             if (response.getStatusCode() == OK) {
                 return response.getBody();
             } else {
-                logger.error("Failed to book appointment: {}", response.getStatusCode());
-                throw new RuntimeException("Failed to book appointment");
+                AppointmentExceptions.throwBookingException("Failed to book appointment");
             }
         } catch (HttpClientErrorException e) {
-            if (e.getStatusCode() == UNPROCESSABLE_ENTITY) {
-                logger.error("Failed to book appointment: {}", e.getResponseBodyAsString());
-                throw new RuntimeException("Failed to book appointment: " + e.getResponseBodyAsString());
-            } else {
-                logger.error("Error booking appointment", e);
-                throw new RuntimeException("Error booking appointment", e);
-            }
+            handleHttpClientErrorException(e);
         } catch (Exception e) {
-            logger.error("Error booking appointment", e);
-            throw new RuntimeException("Error booking appointment", e);
+            AppointmentExceptions.throwBookingException("Error booking appointment: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private void handleHttpClientErrorException(HttpClientErrorException e) {
+        if (e.getStatusCode() == HttpStatus.UNPROCESSABLE_ENTITY) {
+            AppointmentExceptions.throwBookingException("Failed to book appointment: " + e.getResponseBodyAsString());
+        } else {
+            AppointmentExceptions.throwBookingException("Error booking appointment: " + e.getMessage());
         }
     }
 }

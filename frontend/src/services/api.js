@@ -21,19 +21,20 @@ export async function bookAppointment(workshop, id, request) {
     const url = `${API_BASE_URL}/appointments/${id}/booking?workshop=${workshop.toLowerCase()}`;
     try {
         let response;
+        const localTime = new Date(request.time).toLocaleString('en-US', { timeZone: 'Europe/Moscow' }); // UTC+3
         if (workshop.toLowerCase() === 'manchester') {
-            response = await axios.post(url, request, {
+            response = await axios.post(url, { ...request, time: localTime }, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'time': request.time
+                    'time': localTime
                 }
             });
         } else if (workshop.toLowerCase() === 'london') {
-            const xmlBody = `<tireChangeBookingRequest><contactInformation>${request.contactInformation}</contactInformation><time>${request.time}</time></tireChangeBookingRequest>`;
+            const xmlBody = `<tireChangeBookingRequest><contactInformation>${request.contactInformation}</contactInformation><time>${localTime}</time></tireChangeBookingRequest>`;
             response = await axios.put(url, xmlBody, {
                 headers: {
                     'Content-Type': 'text/xml',
-                    'time': request.time
+                    'time': localTime
                 }
             });
         }
