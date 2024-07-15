@@ -27,7 +27,7 @@ export default {
       this.selectedAppointment = appointment;
     },
     handleBookingSuccess({ time, contactInformation }) {
-      this.bookingMessage = `Broneering õnnestus! Aeg: ${time}, Nimi või auto nr: ${contactInformation}`;
+      this.bookingMessage = `Broneering õnnestus! Aeg: ${time}, Auto nr.: ${contactInformation}`;
       this.$refs.appointmentList.fetchAppointments();
     },
     clearMessage() {
