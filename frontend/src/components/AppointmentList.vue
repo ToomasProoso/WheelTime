@@ -16,7 +16,7 @@
     <button @click="fetchAppointments">Otsi aegu</button>
     <ul>
       <li v-for="appointment in filteredAppointments" :key="appointment.id" @click="selectAppointment(appointment)">
-        {{ appointment.time }} - {{ appointment.vehicleType || 'Pole määratud' }} - {{ appointment.workshop }} - {{ appointment.address }}
+        {{ formatDate(appointment.time) }} - {{ appointment.vehicleType || 'Pole määratud' }} - {{ appointment.workshop }} - {{ appointment.address }}
       </li>
     </ul>
   </div>
@@ -88,7 +88,7 @@ export default {
     },
     selectAppointment(appointment) {
       this.selectedAppointment = appointment;
-      this.$emit('appointment-selected', {appointment, workshop: this.selectedWorkshop});
+      this.$emit('appointment-selected', { appointment, workshop: this.selectedWorkshop });
     },
     resetData() {
       this.appointments = [];
@@ -100,6 +100,10 @@ export default {
     updateSelectedWorkshop(event) {
       this.$emit('update:selectedWorkshop', event.target.value);
       this.$emit('clear-message');
+    },
+    formatDate(dateString) {
+      const options = {year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'};
+      return new Date(dateString).toLocaleString('et-EE', options); // Format the date in a readable format for the locale
     }
   },
   created() {

@@ -26,12 +26,16 @@ export default {
     handleAppointmentSelected(appointment) {
       this.selectedAppointment = appointment;
     },
-    handleBookingSuccess({ time, contactInformation }) {
-      this.bookingMessage = `Broneering õnnestus! Aeg: ${time}, Auto nr.: ${contactInformation}`;
+    handleBookingSuccess({time, contactInformation}) {
+      this.bookingMessage = `Broneering õnnestus! Aeg: ${this.formatDate(time)}, Auto nr: ${contactInformation}`;
       this.$refs.appointmentList.fetchAppointments();
     },
     clearMessage() {
       this.bookingMessage = '';
+    },
+    formatDate(dateString) {
+      const options = {year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'};
+      return new Date(dateString).toLocaleString('et-EE', options); // Format the date in a readable format for the locale
     }
   },
   watch: {

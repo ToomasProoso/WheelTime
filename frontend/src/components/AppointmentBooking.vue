@@ -5,7 +5,7 @@
       <label for="time">Aeg:</label>
       <input type="text" v-model="time" id="time" required readonly>
 
-      <label for="contactInformation">Sisesta auto nr:</label>
+      <label for="contactInformation">Nimi või auto nr:</label>
       <input type="text" v-model="contactInformation" id="contactInformation" required>
 
       <button type="submit">Broneeri</button>
