@@ -14,11 +14,19 @@
       <option v-for="type in vehicleTypeOptions" :key="type" :value="type">{{ type }}</option>
     </select>
     <button @click="fetchAppointments">Otsi aegu</button>
-    <ul>
-      <li v-for="appointment in filteredAppointments" :key="appointment.id" @click="selectAppointment(appointment)">
+    <ul v-if="filteredAppointments.length">
+      <li v-for="appointment in paginatedAppointments" :key="appointment.id" @click="selectAppointment(appointment)">
         {{ formatDate(appointment.time) }} - {{ appointment.vehicleType || 'Pole määratud' }} - {{ appointment.workshop }} - {{ appointment.address }}
       </li>
     </ul>
+    <div v-else>
+      <p>Saadaolevaid aegu ei ole.</p>
+    </div>
+    <div class="pagination" v-if="totalPages > 1">
+      <button @click="prevPage" :disabled="currentPage === 1">Eelmine</button>
+      <span>Lehekülg {{ currentPage }} / {{ totalPages }}</span>
+      <button @click="nextPage" :disabled="currentPage === totalPages">Järgmine</button>
+    </div>
   </div>
 </template>
 
@@ -38,7 +46,9 @@ export default {
       fromDate: '',
       untilDate: '',
       vehicleType: 'Sõiduauto',
-      selectedAppointment: null
+      selectedAppointment: null,
+      currentPage: 1,
+      pageSize: 20
     };
   },
   computed: {
@@ -57,6 +67,14 @@ export default {
         const untilDate = this.selectedWorkshop === 'london' ? new Date(this.untilDate) : fromDate;
         return appointmentDate >= now && appointmentDate >= fromDate && (!this.untilDate || appointmentDate <= untilDate);
       });
+    },
+    paginatedAppointments() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      const end = start + this.pageSize;
+      return this.filteredAppointments.slice(start, end);
+    },
+    totalPages() {
+      return Math.ceil(this.filteredAppointments.length / this.pageSize);
     }
   },
   watch: {
@@ -76,6 +94,9 @@ export default {
     },
     vehicleType() {
       this.fetchAppointments();
+    },
+    filteredAppointments() {
+      this.currentPage = 1; // Reset to first page if filteredAppointments change
     }
   },
   methods: {
@@ -102,8 +123,18 @@ export default {
       this.$emit('clear-message');
     },
     formatDate(dateString) {
-      const options = {year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'};
-      return new Date(dateString).toLocaleString('et-EE', options); // Format the date in a readable format for the locale
+      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      return new Date(dateString).toLocaleString('et-EE', options);
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+      }
+    },
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+      }
     }
   },
   created() {

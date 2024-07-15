@@ -48,3 +48,18 @@ button {
 button:hover {
     background-color: #45a049;
 }
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.pagination button {
+    margin: 0 15px;
+}
+
+.pagination span {
+    margin: 0 20px;
+}
