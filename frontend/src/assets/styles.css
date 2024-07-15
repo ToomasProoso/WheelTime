@@ -1,24 +1,24 @@
 body {
-    background-image: url('./SUV.webp'); /* Ensure the path is correct */
-    background-size: cover; /* Cover the entire background */
-    background-position: center; /* Center the image */
+    background-image: url('./SUV.webp');
+    background-size: cover;
+    background-position: center;
     background-repeat: no-repeat;
     font-family: Arial, sans-serif;
-    height: 100vh; /* Ensure the background covers the full height */
-    margin: 0; /* Remove default margin */
+    height: 100vh;
+    margin: 0;
     display: flex;
-    align-items: center; /* Center content vertically */
-    justify-content: center; /* Center content horizontally */
+    align-items: center;
+    justify-content: center;
 }
 
 #app {
-    background: rgba(255, 255, 255, 0.8); /* White background with some transparency */
-    padding: 40px; /* Increase padding for equal space around the content */
+    background: rgba(255, 255, 255, 0.8);
+    padding: 40px;
     border-radius: 10px;
     max-width: 1200px;
-    width: calc(100% - 1px); /* Ensure it uses full width minus padding */
+    width: calc(100% - 1px);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box; /* Include padding in the element's total width and height */
+    box-sizing: border-box;
 }
 
 h1 {
