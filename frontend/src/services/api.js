@@ -21,7 +21,7 @@ export async function bookAppointment(workshop, id, request) {
     const url = `${API_BASE_URL}/appointments/${id}/booking?workshop=${workshop.toLowerCase()}`;
     try {
         let response;
-        const localTime = new Date(request.time).toLocaleString('en-US', { timeZone: 'Europe/Moscow' }); // UTC+3
+        const localTime = new Date(request.time).toLocaleString('en-US', { timeZone: 'Europe/Moscow', hour12: false });
         if (workshop.toLowerCase() === 'manchester') {
             response = await axios.post(url, { ...request, time: localTime }, {
                 headers: {

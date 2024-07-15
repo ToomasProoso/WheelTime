@@ -3,17 +3,16 @@ package com.smit.wheeltime.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.smit.wheeltime.models.TireChangeTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.smit.wheeltime.exception.AppointmentExceptions.throwBookingException;
+
 @Component
 public class XmlResponseParser {
 
-    private static final Logger logger = LoggerFactory.getLogger(XmlResponseParser.class);
     private final XmlMapper xmlMapper = new XmlMapper();
 
     public List<TireChangeTime> parseLondonResponse(String responseBody, String workshopName, String workshopAddress, String defaultVehicleType) {
@@ -31,7 +30,7 @@ public class XmlResponseParser {
                 times.add(time);
             });
         } catch (Exception e) {
-            logger.error("Error parsing London appointments XML response: {}", e.getMessage(), e);
+            throwBookingException("Error parsing London appointments XML response: " + e.getMessage());
         }
         return times;
     }

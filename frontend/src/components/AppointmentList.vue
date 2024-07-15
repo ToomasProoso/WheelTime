@@ -109,7 +109,7 @@ export default {
     },
     selectAppointment(appointment) {
       this.selectedAppointment = appointment;
-      const localTime = new Date(appointment.time).toLocaleString('en-US', { timeZone: 'Europe/Moscow' }); // UTC+3
+      const localTime = new Date(appointment.time).toLocaleString('en-US', { timeZone: 'Europe/Moscow', hour12: false });
       this.$emit('appointment-selected', { appointment: { ...appointment, time: localTime }, workshop: this.selectedWorkshop });
     },
     resetData() {
@@ -124,7 +124,7 @@ export default {
       this.$emit('clear-message');
     },
     formatDate(dateString) {
-      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow' }; // UTC+3
+      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow', hour12: false };
       return new Date(dateString).toLocaleString('et-EE', options);
     },
     nextPage() {

@@ -54,7 +54,7 @@ export default {
       handler(appointmentData) {
         if (appointmentData) {
           this.id = appointmentData.appointment.id || appointmentData.appointment.uuid;
-          this.time = new Date(appointmentData.appointment.time).toLocaleString('en-US', { timeZone: 'Europe/Moscow' }); // UTC+3
+          this.time = new Date(appointmentData.appointment.time).toLocaleString('en-US', { timeZone: 'Europe/Moscow', hour12: false });
           this.localSelectedWorkshop = appointmentData.workshop;
         }
       }

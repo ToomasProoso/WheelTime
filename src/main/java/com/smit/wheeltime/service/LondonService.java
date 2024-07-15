@@ -1,12 +1,13 @@
 package com.smit.wheeltime.service;
 
-import com.smit.wheeltime.exception.AppointmentExceptions;
 import com.smit.wheeltime.models.TireChangeBookingRequest;
 import com.smit.wheeltime.models.TireChangeTime;
 import com.smit.wheeltime.models.TireChangeTimeBookingResponse;
 import com.smit.wheeltime.util.XmlResponseParser;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -14,12 +15,15 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static com.smit.wheeltime.exception.AppointmentExceptions.throwBookingException;
 import static java.time.LocalDateTime.now;
+import static java.time.LocalDateTime.parse;
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpMethod.PUT;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.springframework.web.util.UriComponentsBuilder.fromHttpUrl;
 
@@ -56,7 +60,7 @@ public class LondonService implements WorkshopService {
                     response.getBody(), londonName, londonAddress, londonVehicleTypes[0]);
             return filterLondonAppointments(times, from, until, vehicleType);
         } catch (Exception e) {
-            AppointmentExceptions.throwBookingException("Error fetching London appointments: " + e.getMessage());
+            throwBookingException("Error fetching London appointments: " + e.getMessage());
         }
         return List.of();
     }
@@ -73,10 +77,10 @@ public class LondonService implements WorkshopService {
         LocalDateTime now = now();
         return times.stream()
                 .filter(time -> isWithinDateRange(time.getTime(), from, until)
-                        && LocalDateTime.parse(time.getTime(), ISO_DATE_TIME).isAfter(now))
+                        && parse(time.getTime(), ISO_DATE_TIME).isAfter(now))
                 .filter(time -> vehicleType == null || time.getVehicleType().equalsIgnoreCase(vehicleType))
                 .peek(this::setLondonWorkshopDetails)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private void setLondonWorkshopDetails(TireChangeTime time) {
@@ -85,7 +89,7 @@ public class LondonService implements WorkshopService {
     }
 
     private boolean isWithinDateRange(String time, String from, String until) {
-        LocalDateTime appointmentTime = LocalDateTime.parse(time, ISO_DATE_TIME);
+        LocalDateTime appointmentTime = parse(time, ISO_DATE_TIME);
         LocalDate fromDate = LocalDate.parse(from);
         LocalDate untilDate = until != null ? LocalDate.parse(until) : fromDate;
         return !appointmentTime.toLocalDate().isBefore(fromDate) && !appointmentTime.toLocalDate().isAfter(untilDate);
@@ -111,21 +115,21 @@ public class LondonService implements WorkshopService {
             if (response.getStatusCode() == OK) {
                 return response.getBody();
             } else {
-                AppointmentExceptions.throwBookingException("Failed to book appointment");
+                throwBookingException("Failed to book appointment");
             }
         } catch (HttpClientErrorException e) {
             handleHttpClientErrorException(e);
         } catch (Exception e) {
-            AppointmentExceptions.throwBookingException("Error booking appointment: " + e.getMessage());
+            throwBookingException("Error booking appointment: " + e.getMessage());
         }
         return null;
     }
 
     private void handleHttpClientErrorException(HttpClientErrorException e) {
-        if (e.getStatusCode() == HttpStatus.UNPROCESSABLE_ENTITY) {
-            AppointmentExceptions.throwBookingException("Failed to book appointment: " + e.getResponseBodyAsString());
+        if (e.getStatusCode() == UNPROCESSABLE_ENTITY) {
+            throwBookingException("Failed to book appointment: " + e.getResponseBodyAsString());
         } else {
-            AppointmentExceptions.throwBookingException("Error booking appointment: " + e.getMessage());
+            throwBookingException("Error booking appointment: " + e.getMessage());
         }
     }
 }

@@ -27,15 +27,15 @@ export default {
       this.selectedAppointment = appointment;
     },
     handleBookingSuccess({ time, contactInformation }) {
-      this.bookingMessage = `Broneering õnnestus! Aeg: ${this.formatDate(time)}, Auto nr: ${contactInformation}`;
+      this.bookingMessage = `Broneering õnnestus, ootame teid ${this.formatDate(time)}, Auto nr: ${contactInformation}`;
       this.$refs.appointmentList.fetchAppointments();
     },
     clearMessage() {
       this.bookingMessage = '';
     },
     formatDate(dateString) {
-      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow' }; // UTC+3
-      return new Date(dateString).toLocaleString('et-EE', options); // Format the date in a readable format for the locale
+      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow', hour12: false };
+      return new Date(dateString).toLocaleString('et-EE', options);
     }
   },
   watch: {
