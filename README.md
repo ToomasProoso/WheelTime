@@ -28,11 +28,16 @@
 
 * cd frontend
 * npm run serve
-*
+* või frontend-i README alt saab otse käivitada
+* serve alt vali local link, näide (http://localhost:8081/)
+* NB! juhul kui front käima ei jookse vaata error message-t, äkki vue tahab, et installiksid veel midagi
+* peaks kuvama välja mis puudu ja installimis käsu.
 
 
+### Kuidas kasutada
 
-### andmebaasi setup
-
-baasi seadistamiseks on URL, port, user ja password
-src/main/resources/application.properties
+1. vali töökoda
+2. sisesta kuupäev või kuupäeva vahemik oleneb töökojast
+3. vali aeg ja vajuta ajale peale 
+4. sisesta auto number ja vajuta broneeri
+5. have fun :)
