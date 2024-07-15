@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>Rehvivahetuse ajad</h1>
-    <select v-model="selectedWorkshop">
+    <select :value="selectedWorkshop" @change="updateSelectedWorkshop">
       <option value="manchester">Manchester</option>
       <option value="london">London</option>
     </select>
@@ -26,10 +26,15 @@
 import { getAvailableAppointments } from '@/services/api';
 
 export default {
+  props: {
+    selectedWorkshop: {
+      type: String,
+      required: true
+    }
+  },
   data() {
     return {
       appointments: [],
-      selectedWorkshop: 'manchester',
       fromDate: '',
       untilDate: '',
       vehicleType: 'Sõiduauto',
@@ -58,6 +63,7 @@ export default {
     selectedWorkshop() {
       this.resetData();
       this.fetchAppointments();
+      this.$emit('clear-message');
     },
     fromDate() {
       if (this.untilDate && new Date(this.untilDate) < new Date(this.fromDate)) {
@@ -90,6 +96,10 @@ export default {
       this.untilDate = '';
       this.vehicleType = 'Sõiduauto';
       this.selectedAppointment = null;
+    },
+    updateSelectedWorkshop(event) {
+      this.$emit('update:selectedWorkshop', event.target.value);
+      this.$emit('clear-message');
     }
   },
   created() {

@@ -1,7 +1,8 @@
 <template>
   <div id="app">
-    <AppointmentList @appointment-selected="handleAppointmentSelected" ref="appointmentList" />
+    <AppointmentList v-model:selectedWorkshop="selectedWorkshop" @appointment-selected="handleAppointmentSelected" ref="appointmentList" @clear-message="clearMessage" />
     <AppointmentBooking :selectedWorkshop="selectedWorkshop" :selectedAppointment="selectedAppointment" @booking-success="handleBookingSuccess" />
+    <p>{{ bookingMessage }}</p>
   </div>
 </template>
 
@@ -17,15 +18,25 @@ export default {
   data() {
     return {
       selectedAppointment: null,
-      selectedWorkshop: 'manchester'
+      selectedWorkshop: 'manchester',
+      bookingMessage: ''
     };
   },
   methods: {
     handleAppointmentSelected(appointment) {
       this.selectedAppointment = appointment;
     },
-    handleBookingSuccess() {
+    handleBookingSuccess({ time, contactInformation }) {
+      this.bookingMessage = `Broneering õnnestus! Aeg: ${time}, Nimi või auto nr: ${contactInformation}`;
       this.$refs.appointmentList.fetchAppointments();
+    },
+    clearMessage() {
+      this.bookingMessage = '';
+    }
+  },
+  watch: {
+    selectedWorkshop() {
+      this.clearMessage();
     }
   }
 };
