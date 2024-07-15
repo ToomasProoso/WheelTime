@@ -82,7 +82,7 @@ export default {
     },
     selectAppointment(appointment) {
       this.selectedAppointment = appointment;
-      this.$emit('appointment-selected', { appointment, workshop: this.selectedWorkshop });
+      this.$emit('appointment-selected', {appointment, workshop: this.selectedWorkshop});
     },
     resetData() {
       this.appointments = [];

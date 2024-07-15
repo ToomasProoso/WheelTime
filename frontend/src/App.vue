@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <AppointmentList @appointment-selected="handleAppointmentSelected" />
-    <AppointmentBooking :selectedWorkshop="selectedWorkshop" :selectedAppointment="selectedAppointment" />
+    <AppointmentList @appointment-selected="handleAppointmentSelected" ref="appointmentList" />
+    <AppointmentBooking :selectedWorkshop="selectedWorkshop" :selectedAppointment="selectedAppointment" @booking-success="handleBookingSuccess" />
   </div>
 </template>
 
@@ -23,6 +23,9 @@ export default {
   methods: {
     handleAppointmentSelected(appointment) {
       this.selectedAppointment = appointment;
+    },
+    handleBookingSuccess() {
+      this.$refs.appointmentList.fetchAppointments();
     }
   }
 };
