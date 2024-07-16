@@ -11,7 +11,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -23,7 +22,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 
 class ManchesterServiceTest {
 
@@ -39,7 +39,7 @@ class ManchesterServiceTest {
         setPrivateField(manchesterService, "manchesterApiUrl", "http://localhost:9003/api/v1");
         setPrivateField(manchesterService, "manchesterName", "Manchester Workshop");
         setPrivateField(manchesterService, "manchesterAddress", "123 Manchester Street");
-        setPrivateField(manchesterService, "manchesterVehicleTypes", new String[]{"car"});
+        setPrivateField(manchesterService, "manchesterVehicleTypes", new String[]{"Sõiduauto, Veoauto"});
     }
 
     private void setPrivateField(Object target, String fieldName, Object value) throws Exception {
@@ -51,7 +51,7 @@ class ManchesterServiceTest {
     @Test
     void fetchAppointments_success() {
         String from = "2024-07-16";
-        String vehicleType = "car";
+        String vehicleType = "Sõiduauto, Veoauto";
         TireChangeTime expectedTime = new TireChangeTime();
         expectedTime.setTime("2024-07-16T09:00:00Z");
         expectedTime.setVehicleType(vehicleType);
@@ -72,7 +72,7 @@ class ManchesterServiceTest {
     @Test
     void fetchAppointments_exception() {
         String from = "2024-07-16";
-        String vehicleType = "car";
+        String vehicleType = "Sõiduauto, Veoauto";
 
         when(restTemplate.exchange(anyString(), eq(GET), isNull(), any(ParameterizedTypeReference.class))).thenThrow(new RuntimeException("Error"));
 

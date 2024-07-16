@@ -43,7 +43,7 @@ class LondonServiceTest {
         setPrivateField(londonService, "londonApiUrl", "http://localhost:9003/api/v1");
         setPrivateField(londonService, "londonName", "London Workshop");
         setPrivateField(londonService, "londonAddress", "123 London Street");
-        setPrivateField(londonService, "londonVehicleTypes", new String[]{"car"});
+        setPrivateField(londonService, "londonVehicleTypes", new String[]{"Sõiduauto"});
     }
 
     private void setPrivateField(Object target, String fieldName, Object value) throws Exception {
@@ -56,7 +56,7 @@ class LondonServiceTest {
     void fetchAppointments_success() {
         String from = "2024-07-16";
         String until = "2030-01-02";
-        String vehicleType = "car";
+        String vehicleType = "Sõiduauto";
         String responseBody = "<tireChangeTimesResponse>...</tireChangeTimesResponse>";
         ResponseEntity<String> responseEntity = new ResponseEntity<>(responseBody, OK);
         TireChangeTime expected = new TireChangeTime();
@@ -77,7 +77,7 @@ class LondonServiceTest {
     void fetchAppointments_exception() {
         String from = "2024-07-16";
         String until = "2030-01-02";
-        String vehicleType = "car";
+        String vehicleType = "Sõiduauto";
 
         when(restTemplate.getForEntity(anyString(), eq(String.class))).thenThrow(new RuntimeException("Error"));
 
