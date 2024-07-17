@@ -15,7 +15,8 @@ public class XmlResponseParser {
 
     private final XmlMapper xmlMapper = new XmlMapper();
 
-    public List<TireChangeTime> parseLondonResponse(String responseBody, String workshopName, String workshopAddress, String defaultVehicleType) {
+    public List<TireChangeTime> parseLondonResponse(
+            String responseBody, String workshopName, String workshopAddress, String defaultVehicleType) {
         List<TireChangeTime> times = new ArrayList<>();
         try {
             JsonNode node = xmlMapper.readTree(responseBody.getBytes());

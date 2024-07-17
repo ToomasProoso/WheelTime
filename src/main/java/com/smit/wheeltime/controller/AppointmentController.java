@@ -35,15 +35,14 @@ public class AppointmentController {
                                                          @RequestParam String from,
                                                          @RequestParam(required = false) String until,
                                                          @RequestParam(required = false) String vehicleType) {
-        switch (workshop.toLowerCase()) {
-            case "manchester":
-                return manchesterService.fetchAppointments(from, until, vehicleType);
-            case "london":
-                return londonService.fetchAppointments(from, until, vehicleType);
-            default:
+        return switch (workshop.toLowerCase()) {
+            case "manchester" -> manchesterService.fetchAppointments(from, until, vehicleType);
+            case "london" -> londonService.fetchAppointments(from, until, vehicleType);
+            default -> {
                 AppointmentExceptions.throwInvalidWorkshopException("Invalid workshop: " + workshop);
-                return List.of();
-        }
+                yield List.of();
+            }
+        };
     }
 
     @PostMapping("/{id}/booking")

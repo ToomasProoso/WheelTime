@@ -8,5 +8,4 @@ import lombok.Data;
 public class TireChangeBookingRequest {
     private String contactInformation;
     private String time;
-    // You can add other fields here if required by the API
 }

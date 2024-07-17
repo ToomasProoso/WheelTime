@@ -1,5 +1,5 @@
 import { createStore } from 'vuex';
-import { getAvailableAppointments, bookAppointment } from '../services/api';
+import { getAvailableAppointments, bookAppointment } from '@/services/api';
 
 const store = createStore({
     state: {
