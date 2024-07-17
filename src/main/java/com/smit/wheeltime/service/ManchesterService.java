@@ -52,13 +52,12 @@ public class ManchesterService implements WorkshopService {
     @Override
     public List<TireChangeTime> fetchAppointments(String from, String until, String vehicleType) {
         String requestUrl = buildManchesterRequestUrl(from);
-
         try {
             ResponseEntity<List<TireChangeTime>> response = restTemplate.exchange(
                     requestUrl,
                     GET,
                     null,
-                    new ParameterizedTypeReference<List<TireChangeTime>>() {
+                    new ParameterizedTypeReference<>() {
                     }
             );
             return filterManchesterAppointments(response.getBody(), from, vehicleType);
